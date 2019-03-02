@@ -9,7 +9,8 @@ module.exports = {
   },
   plugins: [
     new CopyWebpackPlugin([
-      { from: './src/index.html' }
+      { from: './src/index.html' },
+      { from: './src/css', to: 'css/' }
     ])
   ]
 };

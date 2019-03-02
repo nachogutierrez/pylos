@@ -1,3 +1,5 @@
+const { zip } = require('@m/functional')
+
 // beware of shallow copy
 const fill = x => n => new Array(n).fill(x)
 
@@ -16,7 +18,21 @@ const range = (n, m) => {
   return arr
 }
 
+
+
 const clone = x => Array.isArray(x) ? x.map(clone) : x
+
+const equals = (a, b) => {
+  if (Array.isArray(a)) {
+    return (
+      Array.isArray(b)
+      && a.length === b.length
+      && zip(a,b).map(([x,y]) => equals(x,y)).reduce(andReducer, true)
+    )
+  }
+  return a === b
+}
+const includes = x => arr => arr.find(y => equals(x,y)) !== undefined
 
 const andReducer = (p1, p2) => p1 && p2
 const concatReducer = (a, b) => a.concat(b)
@@ -26,8 +42,10 @@ module.exports = {
   range,
   indexes,
   clone,
+  equals,
   andReducer,
   concatReducer,
   mat,
-  zeros
+  zeros,
+  includes
 }

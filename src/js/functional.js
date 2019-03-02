@@ -3,10 +3,14 @@ const map = f => arr => arr.map(f)
 const filter = f => arr => arr.filter(f)
 const prop = key => obj => obj[key]
 const flatten = arr => arr.reduce((a, b) => [...a, ...b], [])
+const zip = (l1, l2) => (
+  l1.filter((x,i) => i < l2.length)
+  .map((x,i) => ([x, l2[i]]))
+)
 
 const mapF = (...fns) => x => fns.map(f => f(x))
-
 const not = f => x => !f(x)
+const or = (f, g) => x => f(x) || g(x)
 
 module.exports = {
   pipe,
@@ -15,5 +19,7 @@ module.exports = {
   prop,
   flatten,
   mapF,
-  not
+  not,
+  or,
+  zip
 }
