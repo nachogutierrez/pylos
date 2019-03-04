@@ -1,51 +1,18 @@
-const { zip } = require('@m/functional')
+const R = require('ramda')
 
-// beware of shallow copy
-const fill = x => n => new Array(n).fill(x)
+const clone = x => typeof(x) === 'object' ? R.map(clone, x) : x
 
-// cloning is necessary because outer fill uses a shallow copy of the array, so all the rows would point to the same array
-const mat = x => (rows, cols) => clone (fill (fill (x) (cols)) (rows))
+const fill = x => n => R.range(0,n).map(_ => clone(x))
+const mat = x => (rows, cols) => fill (fill (x) (cols)) (rows)
 const zeros = mat (0)
-const indexes = (n, m) => range(n).map(i => range(m).map(j => ([i, j]))).reduce(concatReducer, [])
-
-const range = (n, m) => {
-  if (!m) return [...Array(n).keys()]
-  const size = m - n
-  const arr = new Array(size)
-  for (let i = 0; i < arr.length; i++) {
-    arr[i] = n + i
-  }
-  return arr
-}
-
-
-
-const clone = x => Array.isArray(x) ? x.map(clone) : x
-
-const equals = (a, b) => {
-  if (Array.isArray(a)) {
-    return (
-      Array.isArray(b)
-      && a.length === b.length
-      && zip(a,b).map(([x,y]) => equals(x,y)).reduce(andReducer, true)
-    )
-  }
-  return a === b
-}
-const includes = x => arr => arr.find(y => equals(x,y)) !== undefined
-
-const andReducer = (p1, p2) => p1 && p2
-const concatReducer = (a, b) => a.concat(b)
+const indexes = (n, m) => R.pipe(
+  R.chain(i => R.range(0,m).map(j => ([i, j])))
+) (R.range(0,n))
 
 module.exports = {
   fill,
-  range,
   indexes,
   clone,
-  equals,
-  andReducer,
-  concatReducer,
   mat,
-  zeros,
-  includes
+  zeros
 }

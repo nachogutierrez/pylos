@@ -1,67 +1,55 @@
-const { indexes, range } = require('@m/util')
-const { empties, liftables } = require('@m/pylos')
+const R = require('ramda')
 
-const drawBoard = canvas => board => {
+const { mapF } = require('./functional')
+const { indexes, range } = require('./util')
+const { balls, empties, liftables, withPlayer } = require('./pylos')
+const { clear, ctx2D, beginPath, rect, arc, fill, stroke } = require('./canvas')
 
-  const spacing = 8
-  const offset = 0
-  const unit = 64
+const getSquare = ({spacing, offset, unit}) => ([h, i, j]) => ({
+  x: offset + ((unit/2)*(3 - h)) + j * (unit + spacing) + spacing,
+  y: offset + ((unit/2)*(3 - h)) + i * (unit + spacing) + spacing,
+  width: unit,
+  height: unit
+})
 
-  // TODO: draw empty board
+const drawBoard = ({ spacing, offset, unit }) => ({ board, turn }) => R.pipe(
+  ctx2D,
+  clear,
+  drawBalls ({ spacing, offset, unit }) (board),
+  drawHints ({ spacing, offset, unit }) ({board, turn})
+)
 
-  const levels = range(4)
-  levels.reverse()
+const drawBalls = options => board => R.pipe(
+  ...[x => x, ...R.reverse(balls(board)).map(drawBall (options))]
+)
 
-  levels.forEach(h => {
-    indexes(h+1,h+1).forEach(([i,j]) => {
-      const inner = (unit/2)*(3 - h)
-      const ball = board[h][i][j]
-      const ballX = inner + j * (unit + spacing) + spacing
-      const ballY = inner + i * (unit + spacing) + spacing
-      if (ball > 0) {
-        const color = ball === 1 ? '#ffe066' : '#73264d'
-        squareCircle(canvas)([ballX, ballY], unit, color, true)
-      }
-    })
-  })
+const drawHints = options => ({board, turn}) => R.pipe(
+  ...[x => x, ...empties(board).map(drawEmptyHint (options))],
+  ...[x => x, ...liftables(board).filter(([h,i,j,player]) => player === turn).map(drawLiftableHint (options))]
+)
 
-  // draw hints
-  empties(board).forEach(([h,i,j]) => {
-    const inner = (unit/2)*(3 - h)
-    const ballX = inner + j * (unit + spacing) + spacing
-    const ballY = inner + i * (unit + spacing) + spacing
+const drawBall = ({spacing, offset, unit}) => ([h,i,j,player]) => R.pipe(
+  drawCircle ({unit, color: getPlayerColor(player)}) (getSquare ({spacing, offset, unit}) ([h,i,j]))
+)
 
-    squareCircle(canvas)([ballX, ballY], unit, 'rgba(0,0,0,0.4)', false)
-  })
+const drawEmptyHint = ({spacing, offset, unit}) => ([h,i,j]) => R.pipe(
+  drawCircle ({unit, color: 'rgba(0,0,0,0.2)', lineWidth: 1}) (getSquare ({spacing, offset, unit}) ([h,i,j]))
+)
 
-  liftables(board).forEach(([h,i,j]) => {
-    const inner = (unit/2)*(3 - h)
-    const ballX = inner + j * (unit + spacing) + spacing
-    const ballY = inner + i * (unit + spacing) + spacing
+const drawLiftableHint = ({spacing, offset, unit}) => ([h,i,j,player]) => R.pipe(
+  drawCircle ({unit, color: 'rgba(255,0,0,0.2)', lineWidth: 1, padding: 16}) (getSquare ({spacing, offset, unit}) ([h,i,j]))
+)
 
-    squareCircle(canvas)([ballX, ballY], unit, 'rgba(255,255,255,0.5)', false, 12)
-  })
+const drawCircle = ({unit, color, padding = 0, lineWidth = 4}) => ({x, y}) => R.pipe(
+  beginPath,
+  arc(x + unit/2, y + unit/2, unit/2 - padding),
+  fill(color),
+  stroke('#000', lineWidth)
+)
 
-  return board
-}
-
-const squareCircle = canvas => ([x,y], unit, color, useStroke, padding = 0) => {
-  const context = canvas.getContext('2d');
-  const centerX = x + unit/2
-  const centerY = y + unit/2
-  const radius = unit/2 - padding
-
-  context.beginPath();
-  context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-  context.fillStyle = color;
-  context.fill();
-  if (useStroke) {
-    context.lineWidth = 5;
-    context.strokeStyle = '#000';
-    context.stroke()
-  }
-}
+const getPlayerColor = player => player === 1 ? '#ffe066' : '#73264d'
 
 module.exports = {
-  drawBoard
+  drawBoard,
+  getSquare
 }
