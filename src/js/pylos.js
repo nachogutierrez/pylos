@@ -45,7 +45,6 @@ const balls = board => (
 const liftsFrom = board => ([h,i,j]) => (
   bases(board)
   .filter(R.complement (R.pipe(belowSquare, R.includes ([h,i,j]))))
-  .filter(R.complement (hasBall (board)))
   .filter(([hp,ip,jp]) => hp < h)
 )
 
@@ -54,7 +53,7 @@ const isLevel = h => ([hp,ip,jp]) => h === hp
 const isLevelOver = h => ([hp,ip,jp]) => hp < h
 const hasBallColor = board => ([h,i,j], color) => board[h][i][j] === color
 const hasBall = board => ([h,i,j]) => board[h][i][j] > 0
-const hasBase = board => ([h,i,j]) => h < 3 && belowSquare([h,i,j]).map(hasBall (board)).reduce(R.and, true)
+const hasBase = board => ([h,i,j]) => !hasBall(board)([h,i,j]) && h < 3 && belowSquare([h,i,j]).map(hasBall (board)).reduce(R.and, true)
 const isLiftable = board => ([h,i,j]) => !isBlocked(board)([h,i,j]) && liftsFrom(board)([h,i,j]).length > 0
 const isValidBoardPosition = board => ([h,i,j]) => h === 3 || board[h][i][j] === 0  || hasBase (board) ([h,i,j])
 const isValidBoard = board => (
@@ -65,6 +64,19 @@ const isValidBoard = board => (
 const insert = ([h,i,j], ball) => board => {
   const nextBoard = clone(board)
   nextBoard[h][i][j] = ball
+  return nextBoard
+}
+
+const remove = ([h,i,j]) => board => {
+  const nextBoard = clone(board)
+  nextBoard[h][i][j] = 0
+  return nextBoard
+}
+
+const move = ([fromH,fromI,fromJ], [toH,toI,toJ]) => board => {
+  const nextBoard = clone(board)
+  nextBoard[toH][toI][toJ] = nextBoard[fromH][fromI][fromJ]
+  nextBoard[fromH][fromI][fromJ] = 0
   return nextBoard
 }
 
@@ -84,6 +96,8 @@ module.exports = {
   isValidBoardPosition,
   isValidBoard,
   insert,
+  move,
+  remove,
   createBoard,
   withPlayer
 }

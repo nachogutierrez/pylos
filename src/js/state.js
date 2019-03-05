@@ -1,5 +1,5 @@
 const R = require('ramda')
-const { createBoard, insert } = require('./pylos')
+const { createBoard, insert, move } = require('./pylos')
 
 const createState = (from = {}) => {
   let state = from
@@ -27,12 +27,16 @@ const createPylosState = () => {
   return {
     getBoard: () => state.view(R.lensProp('board')),
     getTurn: () => state.view(R.lensProp('turn')),
+    getSelected: () => state.view(R.lensProp('selected')),
     insert: ([h,i,j], player) => state.over(R.lensProp('board'), insert([h,i,j], player)),
+    move: ([fromH,fromI,fromJ], [toH,toI,toJ]) => state.over(R.lensProp('board'), move([fromH,fromI,fromJ], [toH,toI,toJ])),
     setTurn: turn => state.set(R.lensProp('turn'), turn),
+    setSelected: selected => state.set(R.lensProp('selected'), selected),
     reset: () => {
       state.set(R.lensProp('turn'), 1)
       return state.set(R.lensProp('board'), createBoard)
-    }
+    },
+    all: () => state.all()
   }
 }
 

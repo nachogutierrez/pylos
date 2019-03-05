@@ -12,11 +12,12 @@ const getSquare = ({spacing, offset, unit}) => ([h, i, j]) => ({
   height: unit
 })
 
-const drawBoard = ({ spacing, offset, unit }) => ({ board, turn }) => R.pipe(
+const drawBoard = ({ spacing, offset, unit }) => ({ board, turn, selected }) => R.pipe(
   ctx2D,
   clear,
   drawBalls ({ spacing, offset, unit }) (board),
-  drawHints ({ spacing, offset, unit }) ({board, turn})
+  drawHints ({ spacing, offset, unit }) ({board, turn}),
+  drawSelected ({ spacing, offset, unit }) (selected)
 )
 
 const drawBalls = options => board => R.pipe(
@@ -26,6 +27,10 @@ const drawBalls = options => board => R.pipe(
 const drawHints = options => ({board, turn}) => R.pipe(
   ...[x => x, ...empties(board).map(drawEmptyHint (options))],
   ...[x => x, ...liftables(board).filter(([h,i,j,player]) => player === turn).map(drawLiftableHint (options))]
+)
+
+const drawSelected = ({spacing, offset, unit}) => selected => (
+  selected ? drawCircle ({unit, color: '#000', lineWidth: 1, padding: 16}) (getSquare ({spacing, offset, unit}) (selected)) : R.identity
 )
 
 const drawBall = ({spacing, offset, unit}) => ([h,i,j,player]) => R.pipe(

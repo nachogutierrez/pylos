@@ -1,6 +1,6 @@
 const R = require('ramda')
 
-const { createBoard, insert, empties } = require('./pylos')
+const { createBoard, insert, empties, liftables, liftsFrom } = require('./pylos')
 const { drawBoard, getSquare } = require('./render')
 const { createPylosState } = require('./state')
 const { ctx2D, beginPath, rect, fill, stroke } = require('./canvas')
@@ -36,8 +36,8 @@ const App = (() => {
       }
     }
 
-    const getSquares = () => R.pipe(
-      empties,
+    const getSquares = f => R.pipe(
+      f,
       R.map(pos => ({
         pos,
         square: getSquare (uiValues) (pos)
@@ -50,27 +50,43 @@ const App = (() => {
       && valueWithin(y, square.y, square.height)
     )
 
-    const toPosition = R.pipe(
+    const toPosition = f => R.pipe(
       sanitizeMouseEvent,
-      ({ x, y }) => ({ x, y, squares: getSquares() }),
+      ({ x, y }) => ({ x, y, squares: getSquares(f) }),
       ({ x, y, squares }) => squares.filter(R.pipe(R.prop('square'), squareContains({x,y}))),
       R.head,
       R.prop('pos')
     )
 
     canvas.addEventListener('click', e => {
-      const pos = toPosition(e)
-      if (pos) {
-        const turn = pylosState.getTurn()
-        pylosState.insert(pos, turn)
-        pylosState.setTurn(3 - pylosState.getTurn())
-        render()
+      const turn = pylosState.getTurn()
+      const selected = pylosState.getSelected()
+      const board = pylosState.getBoard()
+      const emptyPos = toPosition(empties)(e)
+      const liftablePos = toPosition(liftables)(e)
+      if (emptyPos) {
+        if (!selected) {
+          pylosState.insert(emptyPos, turn)
+          pylosState.setTurn(3 - pylosState.getTurn())
+          pylosState.setSelected(undefined)
+        } else if (selected && R.includes(emptyPos, liftsFrom(board)(selected))) {
+          pylosState.move(selected, emptyPos)
+          pylosState.setTurn(3 - pylosState.getTurn())
+          pylosState.setSelected(undefined)
+        }
+      } else if (liftablePos && liftablePos[3] === turn) {
+        if (R.equals(liftablePos, selected)) {
+          pylosState.setSelected(undefined)
+        } else {
+          pylosState.setSelected(liftablePos)
+        }
       }
+      render()
     })
   }
 
   function render() {
-    drawBoard(uiValues)({board: pylosState.getBoard(), turn: pylosState.getTurn()})(canvas)
+    drawBoard(uiValues)(pylosState.all())(canvas)
   }
 
   return {
