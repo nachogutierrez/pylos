@@ -12,7 +12,7 @@ const getSquare = ({spacing, offset, unit}) => ([h, i, j]) => ({
   height: unit
 })
 
-const drawBoard = ({ spacing, offset, unit }) => ({ board, turn, selected }) => R.pipe(
+const drawBoard = ({ spacing, offset, unit }) => ({ board, turn, ui: { selected } }) => R.pipe(
   ctx2D,
   clear,
   drawBalls ({ spacing, offset, unit }) (board),

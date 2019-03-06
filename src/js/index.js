@@ -1,13 +1,13 @@
 const R = require('ramda')
+const { createStore } = require('redux')
 
+const { pylosReducer, insertReducer } = require('./reducers')
+const { insertAction, liftAction, selectAction, unselectAction } = require('./actions')
 const { createBoard, insert, empties, liftables, liftsFrom } = require('./pylos')
 const { drawBoard, getSquare } = require('./render')
-const { createPylosState } = require('./state')
 const { ctx2D, beginPath, rect, fill, stroke } = require('./canvas')
 
 const App = (() => {
-
-  const pylosState = createPylosState()
 
   const uiValues = {
     spacing: 8,
@@ -15,6 +15,13 @@ const App = (() => {
     unit: 64
   }
   let canvas
+  const initialState = {
+    board: createBoard(),
+    turn: 1,
+    ui: {},
+    history: []
+  }
+  const store = createStore(pylosReducer, initialState)
 
   function start() {
     console.log('app running')
@@ -42,7 +49,7 @@ const App = (() => {
         pos,
         square: getSquare (uiValues) (pos)
       }))
-    ) (pylosState.getBoard())
+    ) (store.getState().board)
 
     const valueWithin = (a, from, len) => a >= from && a <= from + len
     const squareContains = ({ x, y }) => square => (
@@ -59,34 +66,31 @@ const App = (() => {
     )
 
     canvas.addEventListener('click', e => {
-      const turn = pylosState.getTurn()
-      const selected = pylosState.getSelected()
-      const board = pylosState.getBoard()
+
+      const { turn, board, ui: { selected } } = store.getState()
       const emptyPos = toPosition(empties)(e)
       const liftablePos = toPosition(liftables)(e)
+
       if (emptyPos) {
         if (!selected) {
-          pylosState.insert(emptyPos, turn)
-          pylosState.setTurn(3 - pylosState.getTurn())
-          pylosState.setSelected(undefined)
+          store.dispatch(insertAction(emptyPos, turn))
         } else if (selected && R.includes(emptyPos, liftsFrom(board)(selected))) {
-          pylosState.move(selected, emptyPos)
-          pylosState.setTurn(3 - pylosState.getTurn())
-          pylosState.setSelected(undefined)
+          store.dispatch(liftAction(selected, emptyPos))
         }
       } else if (liftablePos && liftablePos[3] === turn) {
         if (R.equals(liftablePos, selected)) {
-          pylosState.setSelected(undefined)
+          store.dispatch(unselectAction())
         } else {
-          pylosState.setSelected(liftablePos)
+          store.dispatch(selectAction(liftablePos))
         }
       }
+
       render()
     })
   }
 
   function render() {
-    drawBoard(uiValues)(pylosState.all())(canvas)
+    drawBoard(uiValues)(store.getState())(canvas)
   }
 
   return {
