@@ -24,9 +24,25 @@ const {
 const App = (() => {
 
   const UI_VALUES = {
-    spacing: 12,
-    offset: 32,
-    unit: 64
+    size: 800,
+    borderPercentage: 0.15,
+    offset () {
+      return this.size*this.borderPercentage
+    },
+    spacing () {
+      return (this.size*(1 - 2*this.borderPercentage))/23
+    },
+    unit () {
+      return (this.size*(1 - 2*this.borderPercentage) - 3*this.spacing())/4
+    },
+    snapshot () {
+      return {
+        size: this.size,
+        offset: this.offset(),
+        spacing: this.spacing(),
+        unit: this.unit()
+      }
+    }
   }
 
   let canvas
@@ -44,10 +60,22 @@ const App = (() => {
   function start() {
     console.log('app running')
     canvas = document.getElementById('canvas')
+    updateCanvas()
+    window.addEventListener('resize', () => {
+      updateCanvas()
+      render()
+    })
 
     render()
 
     setListeners()
+  }
+
+  function updateCanvas() {
+    const { width, height } = getWindowSize()
+    UI_VALUES.size = Math.min(width, height) * 0.85
+    canvas.width = UI_VALUES.size
+    canvas.height = UI_VALUES.size
   }
 
   function setListeners() {
@@ -65,7 +93,7 @@ const App = (() => {
       f,
       R.map(pos => ({
         pos,
-        square: getSquare (UI_VALUES) (pos)
+        square: getSquare (UI_VALUES.snapshot()) (pos)
       }))
     ) (pylosStore.getState().board)
 
@@ -145,13 +173,23 @@ const App = (() => {
   }
 
   function render() {
-    drawBoard(UI_VALUES)(pylosStore.getState(), uiStore.getState())(canvas)
+    drawBoard(UI_VALUES.snapshot())(pylosStore.getState(), uiStore.getState())(canvas)
   }
 
   return {
     start
   }
 })()
+
+function getWindowSize() {
+  const w = window,
+    d = document,
+    e = d.documentElement,
+    g = d.getElementsByTagName('body')[0],
+    width = w.innerWidth || e.clientWidth || g.clientWidth,
+    height = w.innerHeight|| e.clientHeight|| g.clientHeight
+  return { width, height }
+}
 
 window.addEventListener('load', () => {
   App.start()

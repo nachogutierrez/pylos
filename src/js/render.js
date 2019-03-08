@@ -41,7 +41,7 @@ const drawLiftableHints = options => ({board, turn}) => R.pipe(
 )
 
 const drawLiftableHint = ({spacing, offset, unit}) => ([h,i,j,player]) => R.pipe(
-  drawCircle ({unit, color: 'rgba(255,0,0,0.2)', lineWidth: 1, padding: 16}) (getSquare ({spacing, offset, unit}) ([h,i,j]))
+  drawCircle ({unit, color: 'rgba(255,0,0,0.2)', lineWidth: 1, padding: unit/4}) (getSquare ({spacing, offset, unit}) ([h,i,j]))
 )
 
 const drawRemovalHints = options => ({board, turn}) => R.pipe(
@@ -49,11 +49,11 @@ const drawRemovalHints = options => ({board, turn}) => R.pipe(
 )
 
 const drawRemovalHint = ({spacing, offset, unit}) => ([h,i,j,player]) => R.pipe(
-  drawCircle ({unit, color: 'rgba(0,255,0,1)', lineWidth: 1, padding: 16}) (getSquare ({spacing, offset, unit}) ([h,i,j]))
+  drawCircle ({unit, color: 'rgba(0,255,0,1)', lineWidth: 1, padding: unit/4}) (getSquare ({spacing, offset, unit}) ([h,i,j]))
 )
 
 const drawSelected = ({spacing, offset, unit}) => selected => (
-  selected ? drawCircle ({unit, color: '#000', lineWidth: 1, padding: 16}) (getSquare ({spacing, offset, unit}) (selected)) : R.identity
+  selected ? drawCircle ({unit, color: '#000', lineWidth: 1, padding: unit/4}) (getSquare ({spacing, offset, unit}) (selected)) : R.identity
 )
 
 const drawBalls = options => board => R.pipe(
