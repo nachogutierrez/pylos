@@ -1,7 +1,15 @@
 
 module.exports = {
-  INSERT: 'INSERT',
-  LIFT: 'LIFT',
-  SELECT: 'SELECT',
-  UNSELECT: 'UNSELECT'
+  pylos: {
+    INSERT: 'INSERT',
+    LIFT: 'LIFT',
+    REMOVE: 'REMOVE',
+    COMMIT: 'COMMIT'
+  },
+  ui: {
+    SELECT: 'SELECT',
+    UNSELECT: 'UNSELECT',
+    ALLOW_REMOVALS: 'ALLOW_REMOVALS',
+    DISALLOW_REMOVALS: 'DISALLOW_REMOVALS'
+  }
 }

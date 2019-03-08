@@ -1,27 +1,45 @@
 const R = require('ramda')
 const { createStore } = require('redux')
 
-const { pylosReducer, insertReducer } = require('./reducers')
-const { insertAction, liftAction, selectAction, unselectAction } = require('./actions')
-const { createBoard, insert, empties, liftables, liftsFrom } = require('./pylos')
+const { createBoard, insert, empties, liftables, unblockedBalls, liftsFrom, hasSquare } = require('./pylos')
 const { drawBoard, getSquare } = require('./render')
 const { ctx2D, beginPath, rect, fill, stroke } = require('./canvas')
 
+const { pylosReducer, uiReducer } = require('./reducers')
+const {
+  pylos: {
+    insertAction,
+    liftAction,
+    removeAction,
+    commitAction
+  },
+  ui: {
+    selectAction,
+    unselectAction,
+    allowRemovalsAction,
+    disallowRemovalsAction
+  }
+} = require('./actions')
+
 const App = (() => {
 
-  const uiValues = {
+  const UI_VALUES = {
     spacing: 8,
     offset: 64,
     unit: 64
   }
+
   let canvas
-  const initialState = {
+
+  const pylosStore = createStore(pylosReducer, {
     board: createBoard(),
     turn: 1,
-    ui: {},
     history: []
-  }
-  const store = createStore(pylosReducer, initialState)
+  })
+
+  const uiStore = createStore(uiReducer, {
+    history: []
+  })
 
   function start() {
     console.log('app running')
@@ -47,9 +65,9 @@ const App = (() => {
       f,
       R.map(pos => ({
         pos,
-        square: getSquare (uiValues) (pos)
+        square: getSquare (UI_VALUES) (pos)
       }))
-    ) (store.getState().board)
+    ) (pylosStore.getState().board)
 
     const valueWithin = (a, from, len) => a >= from && a <= from + len
     const squareContains = ({ x, y }) => square => (
@@ -65,23 +83,54 @@ const App = (() => {
       R.prop('pos')
     )
 
+
+    // TODO: add listener for commit button, it should be enabled only when canRemove is true
     canvas.addEventListener('click', e => {
 
-      const { turn, board, ui: { selected } } = store.getState()
+      const { turn, board, removals } = pylosStore.getState()
+      const { selected, canRemove } = uiStore.getState()
+
       const emptyPos = toPosition(empties)(e)
       const liftablePos = toPosition(liftables)(e)
+      const unblockedBallPos = toPosition(unblockedBalls)(e)
 
-      if (emptyPos) {
-        if (!selected) {
-          store.dispatch(insertAction(emptyPos, turn))
-        } else if (selected && R.includes(emptyPos, liftsFrom(board)(selected))) {
-          store.dispatch(liftAction(selected, emptyPos))
+      const willSelect = liftablePos && liftablePos[3] === turn
+
+      if (canRemove) {
+        const willRemove = unblockedBallPos && unblockedBallPos[3] === turn // can only remove balls that belong to the player
+        if (willRemove) {
+          pylosStore.dispatch(removeAction(unblockedBallPos))
+          if (pylosStore.getState().removals >= 2) { // cant remove more than 2
+            pylosStore.dispatch(commitAction())
+            uiStore.dispatch(disallowRemovalsAction())
+          }
         }
-      } else if (liftablePos && liftablePos[3] === turn) {
+      } else if (emptyPos) {
+        const willInsert = !selected
+        const willLift = selected && R.includes(emptyPos, liftsFrom(board)(selected))
+        if (willInsert) {
+          pylosStore.dispatch(insertAction(emptyPos, turn))
+        } else if (willLift) {
+          pylosStore.dispatch(liftAction(selected, emptyPos))
+        }
+
+        if (willInsert || willLift) {
+          uiStore.dispatch(unselectAction())
+          if (hasSquare (pylosStore.getState().board) (emptyPos)) {
+            // player can opt to remove balls, wait for commit
+            uiStore.dispatch(allowRemovalsAction())
+          } else {
+            // commit immediately
+            pylosStore.dispatch(commitAction())
+            uiStore.dispatch(disallowRemovalsAction())
+          }
+        }
+
+      } else if (willSelect) { // either changing selected or unselecting by clicking on already selected ball
         if (R.equals(liftablePos, selected)) {
-          store.dispatch(unselectAction())
+          uiStore.dispatch(unselectAction())
         } else {
-          store.dispatch(selectAction(liftablePos))
+          uiStore.dispatch(selectAction(liftablePos))
         }
       }
 
@@ -90,7 +139,7 @@ const App = (() => {
   }
 
   function render() {
-    drawBoard(uiValues)(store.getState())(canvas)
+    drawBoard(UI_VALUES)(pylosStore.getState(), uiStore.getState())(canvas)
   }
 
   return {
