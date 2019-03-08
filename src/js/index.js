@@ -24,8 +24,8 @@ const {
 const App = (() => {
 
   const UI_VALUES = {
-    spacing: 8,
-    offset: 64,
+    spacing: 12,
+    offset: 32,
     unit: 64
   }
 
@@ -75,14 +75,20 @@ const App = (() => {
       && valueWithin(y, square.y, square.height)
     )
 
+    const circleContains = ({ x, y }) => square => {
+      const centerX = square.x + square.width/2
+      const centerY = square.y + square.height/2
+      const radius = square.width/2
+      return (x - centerX)*(x - centerX) + (y - centerY)*(y - centerY) <= radius*radius
+    }
+
     const toPosition = f => R.pipe(
       sanitizeMouseEvent,
       ({ x, y }) => ({ x, y, squares: getSquares(f) }),
-      ({ x, y, squares }) => squares.filter(R.pipe(R.prop('square'), squareContains({x,y}))),
+      ({ x, y, squares }) => squares.filter(R.pipe(R.prop('square'), circleContains({x,y}))),
       R.head,
       R.prop('pos')
     )
-
 
     // TODO: add listener for commit button, it should be enabled only when canRemove is true
     canvas.addEventListener('click', e => {

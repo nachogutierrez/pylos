@@ -3,12 +3,19 @@ const R = require('ramda')
 const { balls, empties, liftables, unblockedBalls } = require('./pylos')
 const { clear, ctx2D, beginPath, arc, fill, stroke } = require('./canvas')
 
-const getSquare = ({spacing, offset, unit}) => ([h, i, j]) => ({
-  x: offset + ((unit/2)*(3 - h)) + j * (unit + spacing) + spacing,
-  y: offset + ((unit/2)*(3 - h)) + i * (unit + spacing) + spacing,
-  width: unit,
-  height: unit
-})
+const getSquare = ({spacing, offset, unit}) => ([h, i, j]) => {
+
+  const maxSize = 4*unit + 3*spacing
+  const size = (h+1)*unit + h*spacing
+  const levelOffset = (maxSize - size)/2
+
+  return {
+    x: offset + levelOffset + j * (unit + spacing),
+    y: offset + levelOffset + i * (unit + spacing),
+    width: unit,
+    height: unit
+  }
+}
 
 const drawBoard = ({ spacing, offset, unit }) => ({ board, turn, removals }, { selected, canRemove }) => R.pipe(
   ctx2D,
