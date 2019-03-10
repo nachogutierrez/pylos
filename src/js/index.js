@@ -1,6 +1,17 @@
 const R = require('ramda')
 const { createStore } = require('redux')
 
+const {
+    colors: { BOARD: COLOR_BOARD },
+    proportions: {
+        PCT_OFFSET,
+        PCT_UNIT,
+        PCT_CUP,
+        PCT_SPACING,
+        PCT_BORDER_RADIUS,
+        PCT_BORDER_OFFSET
+    }
+} = require('./constants')
 const { createBoard, insert, empties, liftables, unblockedBalls, liftsFrom, hasSquare } = require('./pylos')
 const { drawBoard, getSquare } = require('./render')
 const { ctx2D, beginPath, rect, fill, stroke } = require('./canvas')
@@ -17,33 +28,21 @@ const {
     selectAction,
     unselectAction,
     allowRemovalsAction,
-    disallowRemovalsAction
+    disallowRemovalsAction,
+    changeSizeAction
   }
 } = require('./actions')
 
-const App = (() => {
+const uiValues = size => ({
+    offset: size*PCT_OFFSET,
+    unit: size*PCT_UNIT,
+    cup: size*PCT_CUP,
+    spacing: size*PCT_SPACING,
+    borderRadius: size*PCT_BORDER_RADIUS,
+    borderOffset: size*PCT_BORDER_OFFSET
+})
 
-  const UI_VALUES = {
-    size: 800,
-    borderPercentage: 0.15,
-    offset () {
-      return this.size*this.borderPercentage
-    },
-    spacing () {
-      return (this.size*(1 - 2*this.borderPercentage))/23
-    },
-    unit () {
-      return (this.size*(1 - 2*this.borderPercentage) - 3*this.spacing())/4
-    },
-    snapshot () {
-      return {
-        size: this.size,
-        offset: this.offset(),
-        spacing: this.spacing(),
-        unit: this.unit()
-      }
-    }
-  }
+const App = (() => {
 
   let canvas
 
@@ -54,6 +53,7 @@ const App = (() => {
   })
 
   const uiStore = createStore(uiReducer, {
+    size: 800,
     history: []
   })
 
@@ -73,9 +73,15 @@ const App = (() => {
 
   function updateCanvas() {
     const { width, height } = getWindowSize()
-    UI_VALUES.size = Math.min(width, height) * 0.85
-    canvas.width = UI_VALUES.size
-    canvas.height = UI_VALUES.size
+    const newSize = Math.min(width, height) * 0.85
+    uiStore.dispatch(changeSizeAction(newSize))
+    canvas.width = newSize
+    canvas.height = newSize
+  }
+
+  function getUiValues() {
+      const size = uiStore.getState().size
+      return uiValues(size)
   }
 
   function setListeners() {
@@ -93,7 +99,7 @@ const App = (() => {
       f,
       R.map(pos => ({
         pos,
-        square: getSquare (UI_VALUES.snapshot()) (pos)
+        square: getSquare (getUiValues()) (pos)
       }))
     ) (pylosStore.getState().board)
 
@@ -170,10 +176,21 @@ const App = (() => {
 
       render()
     })
+
+    canvas.addEventListener('mousemove', e => {
+        e.preventDefault()
+        const rect = e.target.getBoundingClientRect()
+        const pos = {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        }
+
+        document.getElementById('data').innerHTML = `x: ${pos.x} y: ${pos.y}`
+    })
   }
 
   function render() {
-    drawBoard(UI_VALUES.snapshot())(pylosStore.getState(), uiStore.getState())(canvas)
+    drawBoard(getUiValues())(pylosStore.getState(), uiStore.getState())(canvas)
   }
 
   return {

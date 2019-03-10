@@ -13,11 +13,12 @@ const {
     SELECT,
     UNSELECT,
     ALLOW_REMOVALS,
-    DISALLOW_REMOVALS
+    DISALLOW_REMOVALS,
+    CHANGE_SIZE
   }
 } = require('./actionTypes')
 const { insert, move, remove } = require('./pylos')
-const { boardLens, turnLens, selectedLens, historyLens, canRemoveLens, removalsLens } = require('./lenses')
+const { boardLens, turnLens, selectedLens, historyLens, canRemoveLens, removalsLens, sizeLens } = require('./lenses')
 
 // 1 -> 2 -> 1 -> ...
 const changeTurn = x => 3 - x
@@ -73,6 +74,10 @@ const disallowRemovalsReducer = forType (DISALLOW_REMOVALS) (
   (state, _) => R.set(canRemoveLens, false, state)
 )
 
+const changeSizeReducer = forType (CHANGE_SIZE) (
+  (state, { size }) => R.set(sizeLens, size, state)
+)
+
 const pylosReducer = mergeReducers(
   insertReducer,
   liftReducer,
@@ -86,7 +91,8 @@ const uiReducer = mergeReducers(
   unselectReducer,
   allowRemovalsReducer,
   disallowRemovalsReducer,
-  historyReducer
+  historyReducer,
+  changeSizeReducer
 )
 
 module.exports = {

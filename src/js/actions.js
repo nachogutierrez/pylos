@@ -9,7 +9,8 @@ const {
     SELECT,
     UNSELECT,
     ALLOW_REMOVALS,
-    DISALLOW_REMOVALS
+    DISALLOW_REMOVALS,
+    CHANGE_SIZE
   }
 } = require('./actionTypes')
 
@@ -33,6 +34,8 @@ const allowRemovalsAction = () => ({ type: ALLOW_REMOVALS })
 
 const disallowRemovalsAction = () => ({ type: DISALLOW_REMOVALS })
 
+const changeSizeAction = (size) => ({ type: CHANGE_SIZE, size })
+
 module.exports = {
   pylos: {
     insertAction,
@@ -44,6 +47,7 @@ module.exports = {
     selectAction,
     unselectAction,
     allowRemovalsAction,
-    disallowRemovalsAction
+    disallowRemovalsAction,
+    changeSizeAction
   }
 }

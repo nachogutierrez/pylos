@@ -4,5 +4,13 @@
 }
 
 #canvas {
-  background: #999;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+#data {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  margin: 16px;
 }

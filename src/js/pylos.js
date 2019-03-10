@@ -125,5 +125,6 @@ module.exports = {
   remove,
   createBoard,
   withPlayer,
-  fourSquares
+  fourSquares,
+  isBlocked
 }

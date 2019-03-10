@@ -6,6 +6,7 @@ const selectedLens = R.lensProp('selected')
 const canRemoveLens = R.lensProp('canRemove')
 const removalsLens = R.lensProp('removals')
 const historyLens = R.lensProp('history')
+const sizeLens = R.lensProp('size')
 
 module.exports = {
   boardLens,
@@ -13,5 +14,6 @@ module.exports = {
   selectedLens,
   historyLens,
   canRemoveLens,
-  removalsLens
+  removalsLens,
+  sizeLens
 }
