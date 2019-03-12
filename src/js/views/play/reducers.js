@@ -1,7 +1,6 @@
 const R = require('ramda')
-const { combineReducers } = require('redux')
 
-const { filter } = require('./functional')
+const { filter } = require('../../functional')
 const {
   pylos: {
     INSERT,
@@ -17,8 +16,8 @@ const {
     CHANGE_SIZE
   }
 } = require('./actionTypes')
-const { insert, move, remove } = require('./pylos')
-const { boardLens, turnLens, selectedLens, historyLens, canRemoveLens, removalsLens, sizeLens } = require('./lenses')
+const { insert, move, remove } = require('../../pylos')
+const { boardLens, turnLens, selectedLens, historyLens, canRemoveLens, removalsLens, sizeLens } = require('../../lenses')
 
 // 1 -> 2 -> 1 -> ...
 const changeTurn = x => 3 - x

@@ -2,7 +2,6 @@ const R = require('ramda')
 const { createStore } = require('redux')
 
 const {
-    colors: { BOARD: COLOR_BOARD },
     proportions: {
         PCT_OFFSET,
         PCT_UNIT,
@@ -11,11 +10,11 @@ const {
         PCT_BORDER_RADIUS,
         PCT_BORDER_OFFSET
     }
-} = require('./constants')
-const { createBoard, insert, empties, liftables, unblockedBalls, liftsFrom, hasSquare } = require('./pylos')
-const { drawBoard, getSquare } = require('./render')
-const { ctx2D, beginPath, rect, fill, stroke } = require('./canvas')
-
+} = require('../../constants')
+const { mapF } = require('../../functional')
+const { createBoard, empties, liftables, unblockedBalls, liftsFrom, hasSquare } = require('../../pylos')
+const { drawBoard, getSquare } = require('../../render')
+const { getWindowSize, getQueryParameter} = require('../../browser')
 const { pylosReducer, uiReducer } = require('./reducers')
 const {
   pylos: {
@@ -32,6 +31,8 @@ const {
     changeSizeAction
   }
 } = require('./actions')
+const { ID_CANVAS, ID_DATA } = require('./dom')
+const { connectToGame, insertMove, liftMove } = require('../../firebase')
 
 const uiValues = size => ({
     offset: size*PCT_OFFSET,
@@ -45,8 +46,10 @@ const uiValues = size => ({
 const App = (() => {
 
   let canvas
+  let game_id
+  let player
 
-  const pylosStore = createStore(pylosReducer, {
+  let pylosStore = createStore(pylosReducer, {
     board: createBoard(),
     turn: 1,
     history: []
@@ -59,16 +62,83 @@ const App = (() => {
 
   function start() {
     console.log('app running')
-    canvas = document.getElementById('canvas')
-    updateCanvas()
+    handleParameters()
+    canvas = document.getElementById(ID_CANVAS)
     window.addEventListener('resize', () => {
       updateCanvas()
       render()
     })
 
+    updateCanvas()
     render()
 
     setListeners()
+  }
+
+  function handleParameters() {
+      game_id = getQueryParameter('game_id')
+      player = parseInt(getQueryParameter('player'), 10)
+
+      if (!game_id) {
+          throw new Error('game_id is missing')
+      }
+      if (player !== 1 && player !== 2) {
+          throw new Error('player is missing');
+      }
+
+      connectToGame (handleStateUpdate) (game_id)
+  }
+
+  function handleStateUpdate(firebaseState) {
+      const newHistory = firebaseStateToHistory(firebaseState)
+      pylosStore = createStore(pylosReducer, {
+        board: createBoard(),
+        turn: 1,
+        history: []
+      })
+      console.log({firebaseState, newHistory});
+      hydrateStore (newHistory) (pylosStore)
+      render()
+  }
+
+  const hydrateStore = history => store => {
+      history.forEach(store.dispatch)
+      return store
+  }
+
+  // TODO: move these mapping functions elsewhere
+  const firebaseMoveToInsertAction = ({insert: {player, position: { h, i, j }}}) => insertAction([h,i,j], player)
+  const firebaseMoveToLiftAction = ({ lift: {from: { h:fromH, i:fromI, j:fromJ }, to: { h:toH, i:toI, j:toJ }} }) => liftAction([fromH,fromI,fromJ], [toH,toI,toJ])
+  const firebaseMoveToMainAction = R.ifElse(
+      ({ type }) => type === 'insert',
+      firebaseMoveToInsertAction,
+      firebaseMoveToLiftAction
+  )
+  const firebaseMoveToRemovalActions = ({ removals }) => !removals ? [] : removals.map(firebaseRemovalToRemovalAction)
+  const firebaseRemovalToRemovalAction = ({ h, i, j }) => removeAction([h,i,j])
+  const firebaseMoveToCommitAction = move => commitAction()
+  const firebaseMoveToActions = R.pipe(mapF(firebaseMoveToMainAction, firebaseMoveToRemovalActions, firebaseMoveToCommitAction), R.flatten)
+  const firebaseStateToHistory = R.chain(firebaseMoveToActions)
+
+  function afterCommit() {
+      const { history } = pylosStore.getState()
+      const checkpoints = history.map((action, i) => ({...action, i})).filter(({type}) => type === 'COMMIT')
+      const fromIndex = checkpoints.length === 1 ? 1 : checkpoints[checkpoints.length - 2].i + 1
+      const toIndex = checkpoints[checkpoints.length - 1].i - 1
+      const [mainAction, ...removalActions] = history.filter((_, i) => fromIndex <= i && i <= toIndex)
+      const removals = removalActions ? removalActions.map(R.prop('position')) : []
+      const { type } = mainAction
+
+      console.log({history, fromIndex, toIndex});
+      if (type === 'INSERT') {
+          const { position, player } = mainAction
+          insertMove (position, player, removals) (game_id)
+      } else if (type === 'LIFT') {
+          const { from, to } = mainAction
+          liftMove (from, to, removals) (game_id)
+      } else {
+          console.error(`invalid type ${type}`);
+      }
   }
 
   function updateCanvas() {
@@ -128,6 +198,11 @@ const App = (() => {
     canvas.addEventListener('click', e => {
 
       const { turn, board, removals } = pylosStore.getState()
+      if (turn !== player) {
+          console.log('cant play when it is not your turn!');
+          return
+      }
+
       const { selected, canRemove } = uiStore.getState()
 
       const emptyPos = toPosition(empties)(e)
@@ -143,6 +218,7 @@ const App = (() => {
           if (pylosStore.getState().removals >= 2) { // cant remove more than 2
             pylosStore.dispatch(commitAction())
             uiStore.dispatch(disallowRemovalsAction())
+            afterCommit()
           }
         }
       } else if (emptyPos) {
@@ -163,6 +239,8 @@ const App = (() => {
             // commit immediately
             pylosStore.dispatch(commitAction())
             uiStore.dispatch(disallowRemovalsAction())
+
+            afterCommit()
           }
         }
 
@@ -185,7 +263,7 @@ const App = (() => {
           y: e.clientY - rect.top
         }
 
-        document.getElementById('data').innerHTML = `x: ${pos.x} y: ${pos.y}`
+        document.getElementById(ID_DATA).innerHTML = `x: ${pos.x} y: ${pos.y}`
     })
   }
 
@@ -197,16 +275,6 @@ const App = (() => {
     start
   }
 })()
-
-function getWindowSize() {
-  const w = window,
-    d = document,
-    e = d.documentElement,
-    g = d.getElementsByTagName('body')[0],
-    width = w.innerWidth || e.clientWidth || g.clientWidth,
-    height = w.innerHeight|| e.clientHeight|| g.clientHeight
-  return { width, height }
-}
 
 window.addEventListener('load', () => {
   App.start()
