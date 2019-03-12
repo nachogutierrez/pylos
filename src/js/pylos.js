@@ -32,8 +32,7 @@ const bases = board => boardPositions().filter(hasBase (board))
 // empty positions where a ball could be placed.
 const empties = board => (
   boardPositions()
-  .filter(R.complement (hasBall (board)))
-  .filter(R.either (isLevel (3), hasBase (board)))
+  .filter(isPlaceable (board))
 )
 
 // position of balls that can be lifted.
@@ -62,6 +61,15 @@ const liftsFrom = board => ([h,i,j]) => (
   .filter(([hp,ip,jp]) => hp < h)
 )
 
+const ballsUsed = (board, player) => (
+    boardPositions()
+    .map(withPlayer (board))
+    .filter(([h,i,j,p]) => p === player)
+    .length
+)
+
+const ballsLeft = (board, player) => 15 - ballsUsed(board, player)
+
 const isBlocked = board => ([h,i,j]) => balls(board).filter(R.pipe(belowSquare, R.includes([h,i,j]))).length > 0
 const isLevel = h => ([hp,ip,jp]) => h === hp
 const isLevelOver = h => ([hp,ip,jp]) => hp < h
@@ -76,13 +84,26 @@ const hasSquare = board => R.pipe(
 const hasBallColor = board => ([h,i,j], color) => board[h][i][j] === color
 const hasBall = board => ([h,i,j]) => board[h][i][j] > 0
 const hasBase = board => ([h,i,j]) => !hasBall(board)([h,i,j]) && h < 3 && belowSquare([h,i,j]).map(hasBall (board)).reduce(R.and, true)
-const isLiftable = board => ([h,i,j]) => !isBlocked(board)([h,i,j]) && liftsFrom(board)([h,i,j]).length > 0
+
+/**
+* isPlaceable :: Board => Position => boolean
+* returns: true if the position is empty and a ball can be placed there
+*/
+const isPlaceable = board => position => !hasBall(board)(position) && (isLevel(3)(position) || hasBase(board)(position))
+
+/**
+* isLiftable :: Board => Position => boolean
+* returns: true if the position is occupied by a ball that can be lifted to a higher level
+*/
+const isLiftable = board => position => hasBall(board)(position) && !isBlocked(board)(position) && liftsFrom(board)(position).length > 0
 const isValidPosition = ([h,i,j]) => 0 <= h && h <= 3 && 0 <= i && i <= h && 0 <= j && j <= h
 const isValidBoardPosition = board => ([h,i,j]) => h === 3 || board[h][i][j] === 0  || hasBase (board) ([h,i,j])
 const isValidBoard = board => (
   boardPositions()
   .map(isValidBoardPosition (board))
 )
+const isGameOver = board => ballsLeft(board, 1) <= 0 || ballsLeft(board, 2) <= 0
+const belongsToPlayer = (board, player) => ([h,i,j]) => board[h][i][j] === player
 
 const insert = ([h,i,j], ball) => board => {
   const nextBoard = clone(board)
@@ -120,11 +141,18 @@ module.exports = {
   hasSquare,
   isValidBoardPosition,
   isValidBoard,
+  isLiftable,
+  isPlaceable,
   insert,
   move,
   remove,
   createBoard,
   withPlayer,
   fourSquares,
-  isBlocked
+  isBlocked,
+  ballsUsed,
+  ballsLeft,
+  isGameOver,
+  belongsToPlayer,
+  isValidPosition
 }

@@ -4,7 +4,9 @@ module.exports = {
     INSERT: 'INSERT',
     LIFT: 'LIFT',
     REMOVE: 'REMOVE',
-    COMMIT: 'COMMIT'
+    COMMIT: 'COMMIT',
+    OVERRIDE_STATE: 'OVERRIDE_STATE',
+    OVERRIDE_HISTORY: 'OVERRIDE_HISTORY'
   },
   ui: {
     SELECT: 'SELECT',

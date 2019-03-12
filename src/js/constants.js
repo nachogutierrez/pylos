@@ -15,7 +15,7 @@ const PCT_BORDER_OFFSET = 0.0588
 module.exports = {
     colors: {
         BALL_PLAYER_1: '#e6b800',
-        BALL_PLAYER_2: '#4d1933',
+        BALL_PLAYER_2: '#892a59',
         BOARD: '#862d2d',
         BOARD_BORDER: '#732626',
         PYLOS_TEXT: '#917a15',
