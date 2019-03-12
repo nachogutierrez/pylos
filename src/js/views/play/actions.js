@@ -3,7 +3,9 @@ const {
     INSERT,
     LIFT,
     REMOVE,
-    COMMIT
+    COMMIT,
+    OVERRIDE_STATE,
+    OVERRIDE_HISTORY
   },
   ui: {
     SELECT,
@@ -18,11 +20,15 @@ const {
 
 const insertAction = (position, player) => ({ type: INSERT, position, player })
 
-const liftAction = (from, to) => ({ type: LIFT, from, to })
+const liftAction = (from, to, player) => ({ type: LIFT, from, to, player })
 
-const removeAction = position => ({ type: REMOVE, position })
+const removeAction = (position, player) => ({ type: REMOVE, position, player })
 
-const commitAction = () => ({ type: COMMIT })
+const commitAction = (player) => ({ type: COMMIT, player })
+
+const overrideStateAction = (board, turn, removals) => ({ type: OVERRIDE_STATE, board, turn, removals })
+
+const overrideHistoryAction = history => ({ type: OVERRIDE_HISTORY, history })
 
 // UI ACTIONS
 
@@ -41,7 +47,9 @@ module.exports = {
     insertAction,
     liftAction,
     removeAction,
-    commitAction
+    commitAction,
+    overrideStateAction,
+    overrideHistoryAction
   },
   ui: {
     selectAction,

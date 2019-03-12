@@ -1,4 +1,5 @@
 const pipe = (...fns) => x => fns.reduce((y, f) => f(y), x)
+const pipePromise = (...fns) => x => fns.reduce((prom, f) => prom.then(f), Promise.resolve(x))
 const map = f => step => (a, c) => step(a, f(c))
 const filter = predicate => step => (a, c) => predicate(c) ? step(a, c) : a // transducer
 const prop = key => obj => obj[key]
@@ -16,8 +17,37 @@ const or = (f, g) => x => f(x) || g(x)
 const fst = ([a, b]) => a
 const snd = ([a, b]) => b
 
+const getInterval = ([from, to]) => arr => (
+  arr.filter((_, i) => from <= i && i <= to)
+)
+
+const richPredicate = (predicate, error) => x => (predicate(x) ? { passes: true } : { passes: false, error: error(x) })
+
+const combineRichPredicates = (...richPredicates) => x => {
+  for (let i = 0; i < richPredicates.length; i++) {
+    const current = richPredicates[i](x)
+    if (!current.passes) {
+      return current
+    }
+  }
+  return { passes: true }
+}
+
+const eitherRichPredicates = (...richPredicates) => x => {
+  const errors = []
+  for (let i = 0; i < richPredicates.length; i++) {
+    const current = richPredicates[i](x)
+    if (current.passes) {
+      return current
+    }
+    errors.push(current.error)
+  }
+  return { passes: false, error: errors.join(', ') }
+}
+
 module.exports = {
   pipe,
+  pipePromise,
   map,
   filter,
   prop,
@@ -26,5 +56,9 @@ module.exports = {
   not,
   or,
   zip,
-  applyAll
+  applyAll,
+  getInterval,
+  richPredicate,
+  combineRichPredicates,
+  eitherRichPredicates
 }

@@ -118,8 +118,8 @@ const drawBalls = options => board => R.pipe(
 )
 
 const drawBall = ({spacing, offset, unit}) => board => ([h,i,j,player]) => R.pipe(
-  drawCircle ({unit, color: getPlayerColor(player)}) (getSquare ({spacing, offset, unit}) ([h,i,j])),
-  // isBlocked (board) ([h,i,j]) ? drawRectangle ('rgba(255,255,255,0.25)') (getSquare ({spacing, offset, unit: spacing}) ([h,i,j])) : R.identity
+  drawCircle ({unit, color: getPlayerColor(player), lineWidth: 3}) (getSquare ({spacing, offset, unit}) ([h,i,j])),
+  // isBlocked (board) ([h,i,j]) ? drawRectangle ('rgba(0,0,0,0.5)') (getSquare ({spacing, offset, unit: spacing}) ([h,i,j])) : R.identity
 )
 
 const drawCircle = ({unit, color, padding = 0, lineWidth = 1}) => ({x, y}) => circle({

@@ -1,13 +1,14 @@
 const R = require('ramda')
-const { combineReducers } = require('redux')
 
-const { filter } = require('./functional')
+const { filter } = require('../../functional')
 const {
   pylos: {
     INSERT,
     LIFT,
     REMOVE,
-    COMMIT
+    COMMIT,
+    OVERRIDE_STATE,
+    OVERRIDE_HISTORY
   },
   ui: {
     SELECT,
@@ -17,8 +18,8 @@ const {
     CHANGE_SIZE
   }
 } = require('./actionTypes')
-const { insert, move, remove } = require('./pylos')
-const { boardLens, turnLens, selectedLens, historyLens, canRemoveLens, removalsLens, sizeLens } = require('./lenses')
+const { insert, move, remove } = require('../../pylos')
+const { boardLens, turnLens, selectedLens, historyLens, canRemoveLens, removalsLens, sizeLens } = require('../../lenses')
 
 // 1 -> 2 -> 1 -> ...
 const changeTurn = x => 3 - x
@@ -56,6 +57,18 @@ const commitReducer = forType (COMMIT) (
   ) (state)
 )
 
+const overrideStateReducer = forType (OVERRIDE_STATE) (
+  (state, { board, turn, removals }) => R.pipe(
+    R.set(boardLens, board),
+    R.set(turnLens, turn),
+    R.set(removalsLens, removals)
+  ) (state)
+)
+
+const overrideHistoryReducer = forType (OVERRIDE_HISTORY) (
+  (state, { history }) => R.set(historyLens, history, state)
+)
+
 // UI REDUCERS
 
 const selectReducer = forType (SELECT) (
@@ -79,19 +92,21 @@ const changeSizeReducer = forType (CHANGE_SIZE) (
 )
 
 const pylosReducer = mergeReducers(
+  historyReducer,
   insertReducer,
   liftReducer,
   removeReducer,
   commitReducer,
-  historyReducer
+  overrideStateReducer,
+  overrideHistoryReducer
 )
 
 const uiReducer = mergeReducers(
+  historyReducer,
   selectReducer,
   unselectReducer,
   allowRemovalsReducer,
   disallowRemovalsReducer,
-  historyReducer,
   changeSizeReducer
 )
 

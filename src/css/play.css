@@ -1,0 +1,92 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.app-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#info-panel {
+  height: 200px;
+  margin-bottom: 32px;
+  display: flex;
+}
+
+#info-panel .ball-info {
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  transition: all 0.5s ease;
+}
+
+#info-panel .ball-info .ball {
+  border-radius: 50%;
+  border: 1px solid black;
+  margin: 8px 0;
+}
+
+#info-panel .ball-info.turn {
+  background: rgba(44, 165, 0, 0.5);
+}
+
+#info-panel .ball-info .number, #info-panel .ball-info .note {
+  font-family: 'Lato', sans-serif;
+  font-size: 1.2em;
+}
+
+#info-panel .divider {
+  width: 30%;
+}
+
+#canvas {
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+#confirm-button {
+  font-family: 'Lato', sans-serif;
+  margin-top: 32px;
+  background: #862d2d;
+  opacity: 0.85;
+  padding: 16px 32px;
+  border-radius: 8px;
+  box-shadow: 1px 1px 1px 0 black;
+  transition: all 0.2s ease;
+}
+
+#confirm-button:hover {
+  opacity: 1;
+  box-shadow: 2px 2px 2px 0 black;
+  cursor: pointer;
+}
+
+#game-over-message {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.75);
+  font-family: 'Lato', sans-serif;
+  color: white;
+  font-size: 3em;
+  transition: all 1s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  visibility: hidden;
+}
+
+#data {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  margin: 16px;
+}
