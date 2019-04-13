@@ -1,34 +1,15 @@
 const R = require('ramda')
 
-
-const { getWindowSize, getQueryParameter} = require('../../browser')
-const { sizeLens } = require('../../lenses')
+const { getQueryParameter } = require('../../browser')
 const { createPylosStore, createUiStore } = require('./store')
-const {
-  pylos: {
-    insertAction,
-    liftAction,
-    removeAction,
-    commitAction,
-    overrideStateAction,
-    overrideHistoryAction
-  },
-  ui: {
-    selectAction,
-    unselectAction,
-    allowRemovalsAction,
-    disallowRemovalsAction,
-    changeSizeAction
-  }
-} = require('./actions')
+const { pylos: { commitAction }, ui: { disallowRemovalsAction } } = require('./actions')
 const { pylos: { COMMIT } } = require('./actionTypes')
 const { connectToGame } = require('../../firebase')
 const { pushLastMove, handleStateUpdate } = require('./firebase')
-const { getCanvas, getCanvasContainer, getInfoPanel, sizeToUiValues, getConfirmButton } = require('./ui')
+const { getCanvas, getCanvasContainer, getInfoPanel, getConfirmButton } = require('./ui')
 const { updateGameUi } = require('./gameUi')
 
 const { canvasClickListener } = require('./listeners')
-const { toLocalActions, toFirebaseAction } = require('./converters')
 
 const App = (() => {
 

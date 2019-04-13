@@ -1,13 +1,12 @@
 const R = require('ramda')
 
 const { toLocalActions, toFirebaseAction } = require('./converters')
-const { pylos: { COMMIT } } = require('./actionTypes')
 const { updateGameUi } = require('./gameUi')
 const { createPylosStore } = require('./store')
-const { getInterval, flip } = require('../../functional')
 const { pushAction } = require('../../firebase')
 const { isValidAction } = require('./validators')
 const { pylos: { overrideStateAction, overrideHistoryAction } } = require('./actions')
+const { getLastCheckpointActions } = require('./checkpoints')
 
 const filterValidActions = actions => {
   const validActions = []
@@ -52,25 +51,6 @@ const handleStateUpdate = p => R.pipe(
   filterValidActions,
   R.when(hasNewActions(p.pylosStore), overrideAndRender(p))
 )
-
-const isType = expectedType => ({ type }) => type === expectedType
-
-const getCheckpoints = R.pipe(
-  R.addIndex(R.map)((action, i) => ({ ...action, i })),
-  R.filter(isType (COMMIT)) // TODO: replace with constant
-)
-
-const getLastCheckpointInterval = checkpoints => {
-  const fromIndex = checkpoints.length === 1 ? 0 : checkpoints[checkpoints.length - 2].i + 1
-  const toIndex = checkpoints[checkpoints.length - 1].i - 1
-  return [fromIndex, toIndex]
-}
-
-const getLastCheckpointActions = history => R.pipe(
-  getCheckpoints,
-  getLastCheckpointInterval,
-  flip(getInterval) (history)
-)(history)
 
 const pushLastMove = game_id => R.pipe(
   getLastCheckpointActions,

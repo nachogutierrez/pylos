@@ -3,6 +3,7 @@ const R = require('ramda')
 const { colors: { BALL_PLAYER_1, BALL_PLAYER_2, BOARD, BOARD_BORDER, PYLOS_TEXT, SELECTED } } = require('./constants')
 const { balls, empties, liftables, unblockedBalls, boardPositions, isBlocked } = require('./pylos')
 const { clear, ctx2D, beginPath, circle, rectangle, roundRectangle, fill, stroke, dimensions, drawText } = require('./canvas')
+const { getLastCheckpointActions } = require('./views/play/checkpoints')
 
 const getSquare = ({spacing, offset, unit}) => ([h, i, j]) => {
 
@@ -18,16 +19,51 @@ const getSquare = ({spacing, offset, unit}) => ([h, i, j]) => {
   }
 }
 
-const drawBoard = ({ spacing, offset, unit, cup, borderRadius, borderOffset }) => ({ board, turn, removals }, { selected, canRemove }) => R.pipe(
+const drawBoard = ({ spacing, offset, unit, cup, borderRadius, borderOffset }) => ({ board, turn, removals, history }, { selected, canRemove }) => R.pipe(
   ctx2D,
   clear,
   drawBackground ({ offset, spacing, cup, borderRadius, borderOffset }),
   drawBalls ({ spacing, offset, unit }) (board),
   canRemove ? drawRemovalHints ({ spacing, offset, unit }) ({board, turn}) : R.identity,
-  !canRemove ? drawSelected ({ spacing, offset, unit }) (selected) : R.identity
+  !canRemove ? drawSelected ({ spacing, offset, unit }) (selected) : R.identity,
+  history.length > 0 ? drawLastMoveHints ({ spacing, offset, unit }, history) : R.identity
 )
 
 const withDimensions = f => ctx => f(dimensions(ctx))(ctx)
+
+const drawLastMoveHints = (options, history) => R.pipe(
+  ...getLastCheckpointActions(history).reverse().map(drawActionHint(options))
+)
+
+const drawActionHint = options => action => {
+  switch(action.type) {
+    case 'INSERT': return drawInsertActionHint(options, action)
+    case 'LIFT': return drawLiftActionHint(options, action)
+    case 'REMOVE': return drawRemoveActionHint(options, action)
+  }
+  throw Error(`unsupported type ${action.type}`)
+}
+
+const drawActionHintCircle = (options, padding, color, position) => {
+  const { x, y } = getSquare (options) (position)
+  return circle({
+      centerX: x + options.unit/2,
+      centerY: y + options.unit/2,
+      radius: options.unit/2 - padding,
+      color: 'rgba(0,0,0,0)',
+      strokeColor: color,
+      strokeWidth: 3
+  })
+}
+
+const drawInsertActionHint = (options, action) => drawActionHintCircle(options, options.unit/8, '#0f0', action.position)
+
+const drawLiftActionHint = (options, action) => R.pipe(
+  drawActionHintCircle(options, options.unit/8, '#00f', action.from),
+  drawActionHintCircle(options, options.unit/8, '#00f', action.to)
+)
+
+const drawRemoveActionHint = (options, action) => drawActionHintCircle(options, options.unit/4, '#f00', action.position)
 
 const drawBackground = ({spacing, offset, cup, borderRadius, borderOffset}) => R.pipe(
     drawBoardBackground ({borderRadius}),
