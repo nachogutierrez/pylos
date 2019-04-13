@@ -13,16 +13,25 @@ const ids = {
     ID_CANVAS: 'canvas',
     ID_CANVAS_CONTAINER: 'canvas-container',
     ID_INFO_PANEL: 'info-panel',
-    ID_DATA: 'data'
+    ID_DATA: 'data',
+    ID_CONFIRM_BUTTON: 'confirm-button',
+    ID_GAME_OVER_MESSAGE: 'game-over-message'
 }
 
 const get = id => document.getElementById(id)
 
+const getPanel = side => document.querySelector(`#${ids.ID_INFO_PANEL} .ball-info.${side}`)
 const getters = {
     getCanvas: () => get(ids.ID_CANVAS),
     getCanvasContainer: () => get(ids.ID_CANVAS_CONTAINER),
     getInfoPanel: () => get(ids.ID_INFO_PANEL),
-    getData: () => get(ids.ID_DATA)
+    getData: () => get(ids.ID_DATA),
+    getPanel,
+    getPanelBallsLeft: side => getPanel(side).querySelector('.number'),
+    getPanelBall: side => getPanel(side).querySelector('.ball'),
+    getPanelNote: side => getPanel(side).querySelector('.note'),
+    getConfirmButton: () => document.getElementById(ids.ID_CONFIRM_BUTTON),
+    getGameOverMessage: () => document.getElementById(ids.ID_GAME_OVER_MESSAGE)
 }
 
 const calculators = {

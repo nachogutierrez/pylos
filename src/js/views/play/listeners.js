@@ -49,7 +49,6 @@ const handlePositionClick = (player, { board, turn, removals }, { selected, canR
   if (player !== turn) {
     return {}
   }
-  // console.log({ turnInHandler: turn })
   if (canRemove) {
     if (belongsToPlayer (board, turn) (position)) {
       if (removals + 1 === 2) {
@@ -98,7 +97,7 @@ const flushActions = store => actions => {
 }
 
 const flushAllActions = (pylosStore, uiStore) => allActions => {
-  console.log({ actionsToFlush: allActions });
+  console.log(allActions);
   flushActions (pylosStore) (allActions.pylos)
   flushActions (uiStore) (allActions.ui)
   return allActions
