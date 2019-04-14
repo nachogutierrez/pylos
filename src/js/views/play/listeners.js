@@ -97,7 +97,6 @@ const flushActions = store => actions => {
 }
 
 const flushAllActions = (pylosStore, uiStore) => allActions => {
-  console.log(allActions);
   flushActions (pylosStore) (allActions.pylos)
   flushActions (uiStore) (allActions.ui)
   return allActions

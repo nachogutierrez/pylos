@@ -48,6 +48,11 @@ const textBaseline = baseline => ctx => {
     return ctx
 }
 
+const translate = (dx, dy) => ctx => {
+  ctx.translate(dx, dy)
+  return ctx
+}
+
 const clear = ctx => {
   const canvas = ctx.canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -121,7 +126,7 @@ const roundRectangle = ({ startX, startY, width, height, radius, color }) => R.p
     })
 )
 
-const dimensions = ctx => ({ width: ctx.canvas.width, height: ctx.canvas.height })
+const dimensions = ctx => ({ width: ctx.canvas.width/window.devicePixelRatio, height: ctx.canvas.height/window.devicePixelRatio })
 
 module.exports = {
   ctx2D,
@@ -130,6 +135,7 @@ module.exports = {
   arc,
   fill,
   stroke,
+  translate,
   clear,
   circle,
   rectangle,

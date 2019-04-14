@@ -2,7 +2,7 @@ const R = require('ramda')
 
 const { colors: { BALL_PLAYER_1, BALL_PLAYER_2, BOARD, BOARD_BORDER, PYLOS_TEXT, SELECTED } } = require('./constants')
 const { balls, empties, liftables, unblockedBalls, boardPositions, isBlocked } = require('./pylos')
-const { clear, ctx2D, beginPath, circle, rectangle, roundRectangle, fill, stroke, dimensions, drawText } = require('./canvas')
+const { translate, clear, ctx2D, beginPath, circle, rectangle, roundRectangle, fill, stroke, dimensions, drawText } = require('./canvas')
 const { getLastCheckpointActions } = require('./views/play/checkpoints')
 
 const getSquare = ({spacing, offset, unit}) => ([h, i, j]) => {

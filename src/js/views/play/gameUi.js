@@ -124,8 +124,12 @@ const setElementVisibility = (el, visibility) => {
 const calculateNewSize = ({ width, height }) => width < 560 ? 0.7*width : 0.5*height
 
 const resizeCanvas = canvas => newSize => {
-  canvas.width = newSize
-  canvas.height = newSize
+  canvas.style.width = `${newSize}px`
+  canvas.style.height = `${newSize}px`
+  const scale = window.devicePixelRatio;
+  canvas.width = newSize * scale;
+  canvas.height = newSize * scale;
+  canvas.getContext('2d').scale(scale, scale)
   return newSize
 }
 
