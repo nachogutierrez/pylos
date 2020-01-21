@@ -15,7 +15,9 @@ const ids = {
     ID_INFO_PANEL: 'info-panel',
     ID_DATA: 'data',
     ID_CONFIRM_BUTTON: 'confirm-button',
-    ID_GAME_OVER_MESSAGE: 'game-over-message'
+    ID_GAME_OVER_MESSAGE: 'game-over-message',
+    ID_SHARE_BTN: 'share-btn',
+    ID_COPIED_TO_CLIPBOARD_MESSAGE: 'copied-to-clipboard-message'
 }
 
 const get = id => document.getElementById(id)
@@ -31,7 +33,9 @@ const getters = {
     getPanelBall: side => getPanel(side).querySelector('.ball'),
     getPanelNote: side => getPanel(side).querySelector('.note'),
     getConfirmButton: () => document.getElementById(ids.ID_CONFIRM_BUTTON),
-    getGameOverMessage: () => document.getElementById(ids.ID_GAME_OVER_MESSAGE)
+    getGameOverMessage: () => document.getElementById(ids.ID_GAME_OVER_MESSAGE),
+    getShareButton: () => document.getElementById(ids.ID_SHARE_BTN),
+    getCopiedToClipboardMessage: () => document.getElementById(ids.ID_COPIED_TO_CLIPBOARD_MESSAGE)
 }
 
 const calculators = {

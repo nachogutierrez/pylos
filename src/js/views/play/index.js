@@ -6,7 +6,7 @@ const { pylos: { commitAction }, ui: { disallowRemovalsAction } } = require('./a
 const { pylos: { COMMIT } } = require('./actionTypes')
 const { connectToGame } = require('../../firebase')
 const { pushLastMove, handleStateUpdate } = require('./firebase')
-const { getCanvas, getCanvasContainer, getInfoPanel, getConfirmButton } = require('./ui')
+const { getCanvas, getCanvasContainer, getInfoPanel, getConfirmButton, getShareButton, getCopiedToClipboardMessage } = require('./ui')
 const { updateGameUi } = require('./gameUi')
 
 const { canvasClickListener } = require('./listeners')
@@ -77,12 +77,48 @@ const App = (() => {
         pushLastMove (game_id) (pylosStore.getState().history)
         updateGameUi({ uiStore, pylosStore, player })
     })
+
+    const copiedMessage = getCopiedToClipboardMessage()
+    const shareButton = getShareButton()
+    if (player === 1) {
+      shareButton.addEventListener('click', () => {
+        copiedMessage.style.visibility = 'visible'
+        copyToClipboard(`${window.location.host}/play?game_id=${game_id}&player=2`)
+      })
+      shareButton.style.visibility = 'visible'
+
+    }
   }
 
   return {
     start
   }
 })()
+
+function copyToClipboard(text) {
+    if (window.clipboardData && window.clipboardData.setData) {
+        // Internet Explorer-specific code path to prevent textarea being shown while dialog is visible.
+        return clipboardData.setData("Text", text);
+
+    }
+    else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+        var textarea = document.createElement("textarea");
+        textarea.textContent = text;
+        textarea.style.position = "fixed";  // Prevent scrolling to bottom of page in Microsoft Edge.
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            return document.execCommand("copy");  // Security exception may be thrown by some browsers.
+        }
+        catch (ex) {
+            console.warn("Copy to clipboard failed.", ex);
+            return false;
+        }
+        finally {
+            document.body.removeChild(textarea);
+        }
+    }
+}
 
 window.addEventListener('load', () => {
   App.start()

@@ -57,6 +57,7 @@ html, body {
 }
 
 #confirm-button {
+  visibility: hidden;
   font-family: 'Lato', sans-serif;
   margin-top: 32px;
   background: #862d2d;
@@ -93,4 +94,18 @@ html, body {
   bottom: 0;
   right: 0;
   margin: 16px;
+}
+
+#share-btn {
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+#share-btn:hover {
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+#copied-to-clipboard-message {
+  visibility: hidden;
 }

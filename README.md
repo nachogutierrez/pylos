@@ -16,4 +16,14 @@ yarn install
 yarn watch
 ```
 
-on a separate terminal run an http server from `dist` directory
+in a separate terminal run an http server from `dist` directory
+
+## run tests
+
+```sh
+# linux/mac
+yarn test
+
+# windows
+yarn win:test
+```

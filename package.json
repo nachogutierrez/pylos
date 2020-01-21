@@ -6,7 +6,8 @@
   "scripts": {
     "start": "webpack --config webpack.config.js",
     "watch": "webpack --watch --config webpack.config.js",
-    "test": "$(yarn bin)/mocha"
+    "test": "./node_modules/.bin/jest",
+    "win:test": ".\\node_modules\\.bin\\jest"
   },
   "keywords": [],
   "author": "",
