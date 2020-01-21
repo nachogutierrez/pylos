@@ -1,6 +1,6 @@
 # pylos
 
-Web version of [pylos](https://en.wikipedia.org/wiki/Pylos_(board_game)) board game
+Web version of [pylos](https://cdn.1j1ju.com/medias/cd/27/c5-pylos-rulebook.pdf) board game
 
 Production instance: https://pylos-5b63e.firebaseapp.com
 
