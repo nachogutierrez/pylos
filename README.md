@@ -1,6 +1,6 @@
 # pylos
 
-Web version of [pylos](https://cdn.1j1ju.com/medias/cd/27/c5-pylos-rulebook.pdf) board game
+Web version of the board game [pylos](https://cdn.1j1ju.com/medias/cd/27/c5-pylos-rulebook.pdf)
 
 Production instance: https://pylos-5b63e.firebaseapp.com
 
@@ -8,7 +8,7 @@ Production instance: https://pylos-5b63e.firebaseapp.com
 * Open https://pylos-5b63e.firebaseapp.com and click `play` button.
 * After the game board is loaded click the share icon
 * Send shareable url to a friend
-* Click (or touch) on any of the ball slots to insert a ball
+* Click (or touch) on any of the hollows to insert a ball
 
 ## development
 
