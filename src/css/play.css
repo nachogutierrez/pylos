@@ -99,6 +99,7 @@ html, body {
 #share-btn {
   visibility: hidden;
   transition: all 0.2s ease;
+  margin-top: 8px;
 }
 
 #share-btn:hover {
